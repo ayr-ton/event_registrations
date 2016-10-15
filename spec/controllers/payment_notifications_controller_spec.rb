@@ -31,9 +31,10 @@ describe PaymentNotificationsController, type: :controller, block_network: true 
             status = PagSeguro::PaymentStatus.new('3')
             transaction = PagSeguro::Transaction.new(status: status)
             PagSeguro::Transaction.expects(:find_by_notification_code).returns transaction
-            post :create,
-                 type: 'pag_seguro', status: 'Aprovada', transacao_id: '12345678',
-                 pedido: invoice.id, store_code: APP_CONFIG[:pag_seguro][:store_code]
+            post :create, params: {
+              type: 'pag_seguro', status: 'Aprovada', transacao_id: '12345678',
+              pedido: invoice.id, store_code: APP_CONFIG[:pag_seguro][:store_code]
+            }
             expect(PaymentNotification.count).to eq 1
             expect(Invoice.last.status).to eq 'paid'
             expect(Attendance.last.status).to eq 'confirmed'
@@ -45,9 +46,10 @@ describe PaymentNotificationsController, type: :controller, block_network: true 
             status = PagSeguro::PaymentStatus.new('7')
             transaction = PagSeguro::Transaction.new(status: status)
             PagSeguro::Transaction.expects(:find_by_notification_code).returns transaction
-            post :create,
-                 type: 'pag_seguro', status: 'Aprovada', transacao_id: '12345678',
-                 pedido: invoice.id, store_code: APP_CONFIG[:pag_seguro][:store_code]
+            post :create, params: {
+              type: 'pag_seguro', status: 'Aprovada', transacao_id: '12345678',
+              pedido: invoice.id, store_code: APP_CONFIG[:pag_seguro][:store_code]
+            }
             expect(PaymentNotification.count).to eq 1
             expect(Invoice.last.status).to eq 'pending'
             expect(Attendance.last.status).to eq 'pending'
@@ -60,9 +62,10 @@ describe PaymentNotificationsController, type: :controller, block_network: true 
           transaction = PagSeguro::Transaction.new(status: '0')
           PagSeguro::Transaction.expects(:find_by_notification_code).returns transaction
           PagSeguro::Transaction.any_instance.expects(:status).returns nil
-          post :create,
-               type: 'pag_seguro', status: 'Aprovada', transacao_id: '12345678',
-               pedido: invoice.id, store_code: APP_CONFIG[:pag_seguro][:store_code]
+          post :create, params: {
+            type: 'pag_seguro', status: 'Aprovada', transacao_id: '12345678',
+            pedido: invoice.id, store_code: APP_CONFIG[:pag_seguro][:store_code]
+          }
           expect(PaymentNotification.count).to eq 0
           expect(Invoice.last.status).to eq 'pending'
           expect(Attendance.last.status).to eq 'pending'

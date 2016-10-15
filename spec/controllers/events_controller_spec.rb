@@ -5,7 +5,7 @@ describe EventsController, type: :controller do
     end
     describe '#resource' do
       let(:event) { FactoryGirl.create :event }
-      before { get :show, id: event }
+      before { get :show, params: { id: event } }
       it { expect(controller.send(:resource)).to eq event }
     end
   end
@@ -70,7 +70,7 @@ describe EventsController, type: :controller do
 
     describe 'DELETE destroy' do
       it 'redirects to login' do
-        delete :destroy, id: 'foo'
+        delete :destroy, params: { id: 'foo' }
         is_expected.to redirect_to login_path
       end
     end
@@ -84,14 +84,14 @@ describe EventsController, type: :controller do
 
     describe 'GET #edit' do
       it 'redirects to login' do
-        get :edit, id: 'foo'
+        get :edit, params: { id: 'foo' }
         is_expected.to redirect_to login_path
       end
     end
 
     describe 'PUT #update' do
       it 'redirects to login' do
-        put :update, id: 'foo'
+        put :update, params: { id: 'foo' }
         is_expected.to redirect_to login_path
       end
     end
@@ -124,7 +124,7 @@ describe EventsController, type: :controller do
 
     describe 'DELETE #destroy' do
       it 'redirects to root' do
-        delete :destroy, id: 'foo'
+        delete :destroy, params: { id: 'foo' }
         is_expected.to redirect_to root_path
       end
     end
@@ -138,14 +138,14 @@ describe EventsController, type: :controller do
 
     describe 'GET #edit' do
       it 'redirects to root' do
-        get :edit, id: 'foo'
+        get :edit, params: { id: 'foo' }
         is_expected.to redirect_to root_path
       end
     end
 
     describe 'PUT #update' do
       it 'redirects to root' do
-        put :update, id: 'foo'
+        put :update, params: { id: 'foo' }
         is_expected.to redirect_to root_path
       end
     end
@@ -157,7 +157,7 @@ describe EventsController, type: :controller do
 
     describe 'DELETE #destroy' do
       it 'redirects to root' do
-        delete :destroy, id: 'foo'
+        delete :destroy, params: { id: 'foo' }
         is_expected.to redirect_to root_path
       end
     end
@@ -167,14 +167,14 @@ describe EventsController, type: :controller do
       describe 'GET #edit' do
         context 'and valid event ID' do
           it 'assigns the instance variable and renders the template' do
-            get :edit, id: event
+            get :edit, params: { id: event }
             is_expected.to render_template :edit
             expect(assigns(:event)).to eq event
           end
         end
         context 'and invalid event ID' do
           it 'responds 404' do
-            get :edit, id: 'foo'
+            get :edit, params: { id: 'foo' }
             expect(response).to have_http_status 404
           end
         end
@@ -185,7 +185,7 @@ describe EventsController, type: :controller do
           it 'updates the event' do
             start_date = Time.zone.now
             end_date = 1.week.from_now
-            put :update, id: event, event: { name: 'name', attendance_limit: 65, days_to_charge: 5, start_date: start_date, end_date: end_date, main_email_contact: 'contact@foo.com.br', full_price: 278, price_table_link: 'http://xpto', logo: 'bla.jpg' }
+            put :update, params: { id: event, event: { name: 'name', attendance_limit: 65, days_to_charge: 5, start_date: start_date, end_date: end_date, main_email_contact: 'contact@foo.com.br', full_price: 278, price_table_link: 'http://xpto', logo: 'bla.jpg' } }
             event_updated = Event.last
             is_expected.to redirect_to event
             expect(event_updated.name).to eq 'name'
@@ -199,7 +199,7 @@ describe EventsController, type: :controller do
           end
         end
         context 'with invalid event parameters' do
-          before { put :update, id: event, event: { name: '', attendance_limit: nil, days_to_charge: nil, start_date: '', end_date: '', full_price: '', price_table_link: '' } }
+          before { put :update, params: { id: event, event: { name: '', attendance_limit: nil, days_to_charge: nil, start_date: '', end_date: '', full_price: '', price_table_link: '' } } }
           it 'renderes the form with the errors' do
             expect(response).to render_template :edit
             expect(assigns(:event).errors.full_messages).to eq ['Start date não pode ficar em branco', 'End date não pode ficar em branco', 'Full price não pode ficar em branco', 'Name não pode ficar em branco', 'Attendance limit não pode ficar em branco']
@@ -207,7 +207,7 @@ describe EventsController, type: :controller do
         end
         context 'with invalid event ID' do
           it 'responds 404' do
-            get :edit, id: 'foo'
+            get :edit, params: { id: 'foo' }
             expect(response).to have_http_status 404
           end
         end
@@ -218,14 +218,14 @@ describe EventsController, type: :controller do
       let(:event) { FactoryGirl.create :event }
       describe 'GET #edit' do
         it 'redirects to root' do
-          get :edit, id: event
+          get :edit, params: { id: event }
           is_expected.to redirect_to root_path
         end
       end
 
       describe 'PUT #update' do
         it 'redirects to root' do
-          put :update, id: event
+          put :update, params: { id: event }
           is_expected.to redirect_to root_path
         end
       end
@@ -286,7 +286,7 @@ describe EventsController, type: :controller do
         it 'creates the event and redirects to index of events' do
           start_date = Time.zone.now
           end_date = 1.week.from_now
-          post :create, event: { name: 'foo', attendance_limit: 10, days_to_charge: 3, start_date: start_date, end_date: end_date, main_email_contact: 'contact@foo.com.br', full_price: 100, price_table_link: 'http://bla', logo: 'bla.jpg' }
+          post :create, params: { event: { name: 'foo', attendance_limit: 10, days_to_charge: 3, start_date: start_date, end_date: end_date, main_email_contact: 'contact@foo.com.br', full_price: 100, price_table_link: 'http://bla', logo: 'bla.jpg' } }
           expect(Event.count).to eq 1
           event_persisted = Event.last
           expect(event_persisted.name).to eq 'foo'
@@ -304,7 +304,7 @@ describe EventsController, type: :controller do
 
       context 'with invalid parameters' do
         subject(:event) { assigns(:event) }
-        before { post :create, event: { name: '' } }
+        before { post :create, params: { event: { name: '' } } }
 
         it 'renders form with the errors' do
           expect(event).to be_a Event
@@ -319,7 +319,7 @@ describe EventsController, type: :controller do
         context 'and responding to HTML' do
           let!(:event) { FactoryGirl.create :event }
           it 'deletes the event and redirects to events index' do
-            delete :destroy, id: event.id
+            delete :destroy, params: { id: event.id }
             is_expected.to redirect_to events_path
             expect(Event.count).to eq 0
           end
@@ -328,7 +328,7 @@ describe EventsController, type: :controller do
 
       context 'with invalid parameters' do
         it 'responds 404' do
-          delete :destroy, id: 'foo'
+          delete :destroy, params: { id: 'foo' }
           expect(response.status).to eq 404
         end
       end
@@ -436,7 +436,7 @@ describe EventsController, type: :controller do
   describe 'GET #show' do
     let!(:event) { FactoryGirl.create :event }
     context 'with an existent user' do
-      before { get :show, id: event.id }
+      before { get :show, params: { id: event.id } }
       it { expect(assigns(:event)).to eq event }
       it { expect(assigns(:last_attendance_for_user)).to be_nil }
       it { is_expected.to render_template :show }
@@ -444,7 +444,7 @@ describe EventsController, type: :controller do
 
     context 'with invalid parameters' do
       it 'responds 404' do
-        get :show, id: 'foo'
+        get :show, params: { id: 'foo' }
         expect(response.status).to eq 404
       end
     end
@@ -463,7 +463,7 @@ describe EventsController, type: :controller do
           FactoryGirl.create(:attendance, event: event, user: user, status: 'cancelled')
           Timecop.return
           other_attendance = FactoryGirl.create(:attendance, event: event, user: user)
-          get :show, id: event.id
+          get :show, params: { id: event.id }
           expect(assigns[:last_attendance_for_user]).to eq other_attendance
         end
       end
@@ -472,7 +472,7 @@ describe EventsController, type: :controller do
         let(:other_event) { FactoryGirl.create(:event) }
         let!(:attendance) { FactoryGirl.create(:attendance, event: event, user: user) }
         let!(:other_attendance) { FactoryGirl.create(:attendance, event: other_event, user: user) }
-        before { get :show, id: event.id }
+        before { get :show, params: { id: event.id } }
         it { expect(assigns[:last_attendance_for_user]).to eq attendance }
       end
     end

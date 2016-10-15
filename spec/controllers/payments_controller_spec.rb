@@ -9,7 +9,7 @@ describe PaymentsController, type: :controller do
       it 'call the register, changes the status of invoice and redirect to groups index' do
         PagSeguroService.expects(:checkout).with(invoice, anything).once.returns(url: 'xpto.foo.bar')
 
-        post :checkout, event_id: event.id, id: invoice.id
+        post :checkout, params: { event_id: event.id, id: invoice.id }
         expect(Invoice.last.status).to eq Invoice::SENT
         expect(response).to redirect_to 'xpto.foo.bar'
       end
@@ -25,7 +25,7 @@ describe PaymentsController, type: :controller do
 
       it 'redirects to event with the proper message if any errors' do
         PagSeguroService.expects(:checkout).with(invoice, anything).once.returns(errors: 'xpto')
-        post :checkout, event_id: event.id, id: invoice.id
+        post :checkout, params: { event_id: event.id, id: invoice.id }
         expect(Invoice.last.status).to eq Invoice::PENDING
         expect(response).to redirect_to event_registration_groups_path(event)
         expect(flash[:alert]).to eq 'xpto'
@@ -34,12 +34,12 @@ describe PaymentsController, type: :controller do
 
     context 'with invalid event' do
       let(:invoice) { FactoryGirl.create :invoice }
-      before { post :checkout, event_id: 'foo', id: invoice.id }
+      before { post :checkout, params: { event_id: 'foo', id: invoice.id } }
       it { expect(response).to have_http_status 404 }
     end
 
     context 'with invalid invoice' do
-      before { post :checkout, event_id: event.id, id: 'foo' }
+      before { post :checkout, params: { event_id: event.id, id: 'foo' } }
       it { expect(response).to redirect_to event_registration_groups_path event }
       it { expect(flash[:alert]).to eq I18n.t('invoice.not_found') }
     end

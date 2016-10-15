@@ -19,7 +19,7 @@ describe AttendancesController, type: :controller do
     context 'with no search parameter' do
       context 'and no attendances' do
         let!(:event) { FactoryGirl.create(:event) }
-        before { get :index, event_id: event, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' }
+        before { get :index, params: { event_id: event, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' } }
         it { expect(assigns(:attendances_list)).to eq [] }
       end
 
@@ -27,31 +27,31 @@ describe AttendancesController, type: :controller do
         let!(:attendance) { FactoryGirl.create(:attendance) }
         context 'and one attendance, but no association with event' do
           let!(:event) { FactoryGirl.create(:event) }
-          before { get :index, event_id: event, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' }
+          before { get :index, params: { event_id: event, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' } }
           it { expect(assigns(:attendances_list)).to eq [] }
         end
         context 'and one attendance associated' do
           let!(:event) { FactoryGirl.create(:event, attendances: [attendance]) }
-          before { get :index, event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' }
+          before { get :index, params: { event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' } }
           it { expect(assigns(:attendances_list)).to match_array [attendance] }
         end
         context 'and one associated and other not' do
           let!(:other_attendance) { FactoryGirl.create(:attendance) }
           let!(:event) { FactoryGirl.create(:event, attendances: [attendance]) }
-          before { get :index, event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' }
+          before { get :index, params: { event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' } }
           it { expect(assigns(:attendances_list)).to match_array [attendance] }
         end
         context 'and two associated' do
           let!(:other_attendance) { FactoryGirl.create(:attendance) }
           let!(:event) { FactoryGirl.create(:event, attendances: [attendance, other_attendance]) }
-          before { get :index, event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' }
+          before { get :index, params: { event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' } }
           it { expect(assigns(:attendances_list)).to match_array [attendance, other_attendance] }
         end
         context 'and one attendance in one event and other in other event' do
           let!(:other_attendance) { FactoryGirl.create(:attendance) }
           let!(:event) { FactoryGirl.create(:event, attendances: [attendance]) }
           let!(:other_event) { FactoryGirl.create(:event, attendances: [other_attendance]) }
-          before { get :index, event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' }
+          before { get :index, params: { event_id: event.id, pending: 'pending', accepted: 'accepted', paid: 'paid', confirmed: 'confirmed', cancelled: 'cancelled' } }
           it { expect(assigns(:attendances_list)).to match_array [attendance] }
         end
       end
@@ -63,7 +63,7 @@ describe AttendancesController, type: :controller do
       let!(:event) { FactoryGirl.create(:event) }
       let!(:attendance) { FactoryGirl.create(:attendance, event: event, user: user) }
       let!(:invoice) { Invoice.from_attendance(attendance, Invoice::GATEWAY) }
-      before { get :show, id: attendance.id }
+      before { get :show, params: { id: attendance.id } }
       it { expect(assigns[:attendance]).to eq attendance }
       it { expect(response).to be_success }
     end
@@ -74,23 +74,23 @@ describe AttendancesController, type: :controller do
 
     it 'cancels attendance' do
       Attendance.any_instance.expects(:cancel)
-      delete :destroy, id: attendance.id
+      delete :destroy, params: { id: attendance.id }
     end
 
     it 'not delete attendance' do
       Attendance.any_instance.expects(:destroy).never
-      delete :destroy, id: attendance.id
+      delete :destroy, params: { id: attendance.id }
     end
 
     it 'redirects back to status' do
-      delete :destroy, id: attendance.id
+      delete :destroy, params: { id: attendance.id }
       expect(response).to redirect_to(attendance_path(attendance))
     end
 
     context 'with invoice' do
       it 'cancel the attendance and the invoice' do
         Invoice.from_attendance(attendance, Invoice::GATEWAY)
-        delete :destroy, id: attendance.id
+        delete :destroy, params: { id: attendance.id }
         expect(Attendance.last.status).to eq 'cancelled'
         expect(Invoice.last.status).to eq 'cancelled'
       end
@@ -103,12 +103,12 @@ describe AttendancesController, type: :controller do
       it 'confirms attendance' do
         EmailNotifications.stubs(:registration_confirmed).returns(stub(deliver_now: true))
         Attendance.any_instance.expects(:confirm)
-        put :confirm, id: attendance.id
+        put :confirm, params: { id: attendance.id }
       end
 
       it 'redirects back to status' do
         EmailNotifications.stubs(:registration_confirmed).returns(stub(deliver_now: true))
-        put :confirm, id: attendance.id
+        put :confirm, params: { id: attendance.id }
 
         expect(response).to redirect_to(attendance_path(attendance))
       end
@@ -121,7 +121,7 @@ describe AttendancesController, type: :controller do
         Airbrake.expects(:notify)
                 .with(exception.message, action: action, attendance: attendance)
 
-        put :confirm, id: attendance.id
+        put :confirm, params: { id: attendance.id }
 
         expect(response).to redirect_to(attendance_path(attendance))
       end
@@ -134,7 +134,7 @@ describe AttendancesController, type: :controller do
                 .with(exception.message, action: action, attendance: attendance)
                 .raises(exception)
 
-        put :confirm, id: attendance.id
+        put :confirm, params: { id: attendance.id }
 
         expect(response).to redirect_to(attendance_path(attendance))
       end
@@ -219,7 +219,7 @@ describe AttendancesController, type: :controller do
       before do
         Invoice.from_attendance(attendance, Invoice::GATEWAY)
         attendance.cancel
-        put :recover_it, id: attendance.id
+        put :recover_it, params: { id: attendance.id }
       end
 
       it { expect(Attendance.last.status).to eq 'pending' }
@@ -233,7 +233,7 @@ describe AttendancesController, type: :controller do
       let(:attendance) { FactoryGirl.create(:attendance, event: event, status: 'waiting') }
       before do
         Invoice.from_attendance(attendance, Invoice::GATEWAY)
-        patch :dequeue_it, id: attendance.id
+        patch :dequeue_it, params: { id: attendance.id }
       end
 
       it 'changes the status and redirects to the attendance page' do
@@ -335,7 +335,7 @@ describe AttendancesController, type: :controller do
     context 'with csv format' do
       let!(:attendance) { FactoryGirl.create(:attendance, event: event, status: :paid, first_name: 'bLa', created_at: 1.day.ago) }
       let!(:other) { FactoryGirl.create(:attendance, event: event, status: :paid, first_name: 'bLaXPTO') }
-      before { get :search, event_id: event, paid: 'true', format: :csv }
+      before { get :search, params: { event_id: event, paid: 'true', format: :csv } }
       it 'returns the attendances in the csv format' do
         expected_disposition = 'attachment; filename="attendances_list.csv"'
         expect(response.body).to eq AttendanceExportService.to_csv([other, attendance])
